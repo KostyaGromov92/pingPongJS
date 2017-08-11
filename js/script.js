@@ -85,6 +85,35 @@ class Pong {
         };
         callback();
 
+        this.CHAR_PIXEL = 10;
+
+        this.CHARS = [
+            '111101101101111',
+            '010010010010010',
+            '111001111100111',
+            '111001111001111',
+            '101101111001001',
+            '111100111001111',
+            '111100111101111',
+            '111001001001001',
+            '111101111101111',
+            '111101111001111',
+        ].map(str => {
+           const canvas = document.createElement('canvas');
+           canvas.height = this.CHAR_PIXEL * 5;
+           canvas.width = this.CHAR_PIXEL * 3;
+           const contex = canvas.getContext('2d');
+           contex.fillStyle = '#fff';
+           str.split('').forEach((fill, i) => {
+              if ( fill === '1') {
+                  contex.fillRect((i % 3) * this.CHAR_PIXEL, (i / 3 | 0) * this.CHAR_PIXEL, this.CHAR_PIXEL, this.CHAR_PIXEL);
+              }
+           });
+
+           return canvas;
+        });
+
+
         this.reset();
     }
 
@@ -103,11 +132,24 @@ class Pong {
 
         this.drawRect(this.ball);
         this.players.forEach(player => this.drawRect(player));
+        this.drawScore();
     }
 
     drawRect(rect) {
         this._context.fillStyle = '#fff';
         this._context.fillRect(rect.left, rect.top, rect.size.x, rect.size.y);
+    }
+
+    drawScore() {
+        const align = this._canvas.width / 3;
+        const CHAR_W = this.CHAR_PIXEL * 4;
+        this.players.forEach((player, index) => {
+           const chars = player.score.toString().split('');
+           const offset = align * (index + 1) - (CHAR_W * chars.length / 2) + this.CHAR_PIXEL / 2;
+           chars.forEach((char, pos) => {
+              this._context.drawImage(this.CHARS[char | 0], offset + pos * CHAR_W, 20);
+           });
+        });
     }
 
     reset() {
@@ -151,7 +193,8 @@ const canvas = document.getElementById('pong');
 const pong = new Pong(canvas);
 
 canvas.addEventListener('mousemove', event => {
-    pong.players[0].pos.y = event.offsetY;
+    const scale = event.offsetY / event.target.getBoundingClientRect().height;
+    pong.players[0].pos.y = canvas.height * scale;
 });
 
 canvas.addEventListener('click', event => {
